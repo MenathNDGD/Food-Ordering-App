@@ -5,7 +5,7 @@ export default function Footer() {
         <footer className="border-t p-8 text-gray-500 mt-16">
             <div className="flex justify-between items-center text-xl">
                 <div className="text-xl font-semibold text-primary hover:text-primary-dark transition-colors duration-300">
-                    Pizzalicious
+                    <a href={'/'}>Pizzalicious</a>
                 </div>
                 <div className="text-center">
                     &copy; 2024 All Rights Reserved.
