@@ -8,12 +8,10 @@ import HomeMenu from "@/components/layout/HomeMenu";
 export default function Home() {
   return (
     <>
-      <Header />
       <Hero />
       <HomeMenu />
       <About />
       <Contact />
-      <Footer />
     </>
   );
 }
