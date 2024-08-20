@@ -1,100 +1,148 @@
 "use client";
+
+import EditableImage from "@/components/layout/EditableImage";
+import UserTabs from "@/components/layout/UserTabs";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
-    const session = useSession();
-    const [userName, setUserName] = useState('');
-    const [saved, setSaved] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const {status} = session;
+  const session = useSession();
+  const [userName, setUserName] = useState("");
+  const [image, setImage] = useState("");
+  const [phone, setPhone] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [profileFetched, setProfileFetched] = useState(false);
+  const { status } = session;
 
-    useEffect(() => {
-        if (status === 'authenticated') {
-            setUserName(session.data.user.name);
-        }
-    }, [session, status]);
-
-    async function handleProfileInfoUpdate(ev) {
-        ev.preventDefault();
-        setSaved(false);
-        setIsSaving(true);
-        const response = await fetch('/api/profile', {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: userName}),
+  useEffect(() => {
+    if (status === "authenticated") {
+      setUserName(session.data.user.name);
+      setImage(session.data.user.image);
+      fetch("/api/profile").then((response) => {
+        response.json().then((data) => {
+          setPhone(data.phone);
+          setStreetAddress(data.streetAddress);
+          setPostalCode(data.postalCode);
+          setCity(data.city);
+          setCountry(data.country);
+          setIsAdmin(data.admin);
+          setProfileFetched(true);
         });
-        setIsSaving(false);
-        
-        if (response.ok) {
-            setSaved(true);
-        }
+      });
     }
+  }, [session, status]);
 
-    async function handleFileChange(ev) {
-        const files = ev.target.files;
-        if (files?.length === 1) {
-            const data = new FormData;
-            data.set('file', files[0]);
-            await fetch('/api/upload', {
-                method: 'POST',
-                // headers: {'Content-Type': 'multipart/form-data'},
-                //INFO: No need of the above commented line.
-                body: null,
-            })  
-        }
-    }
+  async function handleProfileInfoUpdate(ev) {
+    ev.preventDefault();
 
-    if (status === 'loading') {
-        return 'Loading...'
-    }
+    const savingPromise = new Promise(async (resolve, reject) => {
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: userName,
+          image,
+          streetAddress,
+          phone,
+          postalCode,
+          city,
+          country,
+        }),
+      });
+      if (response.ok) resolve();
+      else reject();
+    });
 
-    if (status === 'unauthenticated') {
-        return redirect('/login');
-    }
+    await toast.promise(savingPromise, {
+      loading: "Saving...",
+      success: "Profile Saved!",
+      error: "Saving Failed!",
+    });
+  }
 
-    const userImage = session.data.user.image;
+  if (status === "loading" || !profileFetched) {
+    return "Loading...";
+  }
 
-    return (
-        <section className="mt-8">
-            <h1 className="mb-4 text-4xl font-semibold text-center text-primary">Profile</h1>
-            <div className="max-w-md mx-auto">
-                {saved && (
-                    <h2 className="p-4 text-center bg-green-100 border border-green-300 rounded-lg">Profile Saved!</h2>
-                )}
-                {isSaving && (
-                    <h2 className="p-4 text-center bg-blue-100 border border-blue-300 rounded-lg">Saving....</h2>
-                )}
-                <div className="flex items-center gap-4">
-                    <div>
-                        <div className="relative p-2 bg-gray-300 rounded-lg">
-                            <Image 
-                                className="w-full h-full mb-2 rounded-lg" 
-                                src={userImage}
-                                alt={'avatar'}
-                                width={250}
-                                height={250}
-                            />
-                            <label>
-                                <input type="file" className="hidden" onChange={handleFileChange} />
-                                <span className="block p-2 text-center text-white bg-gray-700 border border-gray-300 rounded-lg cursor-pointer">Edit</span>
-                            </label>
-                        </div>
-                    </div>
-                    <form className="grow" onSubmit={handleProfileInfoUpdate}>
-                        <input 
-                            type="text" 
-                            placeholder="First & Last Name" 
-                            value={userName} 
-                            onChange={ev => setUserName(ev.target.value)}
-                        />
-                        <input type="email" value={'session.data.user.email'} disabled={true} />
-                        <button type="submit">Save</button>
-                    </form>
-                </div>
+  if (status === "unauthenticated") {
+    return redirect("/login");
+  }
+
+  return (
+    <section className="mt-8">
+      <UserTabs isAdmin={isAdmin} />
+      <div className="max-w-md mx-auto mt-8">
+        <div className="flex gap-4">
+          <div>
+            <div className="relative p-2 bg-gray-300 rounded-lg max-w-[120px]">
+              <EditableImage link={image} setLink={setImage} />
             </div>
-        </section>
-    );
+          </div>
+          <form className="grow" onSubmit={handleProfileInfoUpdate}>
+            <label>First & Last Name</label>
+            <input
+              type="text"
+              placeholder="First & Last Name"
+              value={userName}
+              onChange={(ev) => setUserName(ev.target.value)}
+            />
+            <label>Email</label>
+            <input
+              type="email"
+              value={"session.data.user.email"}
+              disabled={true}
+            />
+            <label>Phone</label>
+            <input
+              type="tel"
+              placeholder="Phone Number"
+              value={phone}
+              onChange={(ev) => setPhone(ev.target.value)}
+            />
+            <label>Street Address</label>
+            <input
+              type="text"
+              placeholder="Street Address"
+              value={streetAddress}
+              onChange={(ev) => setStreetAddress(ev.target.value)}
+            />
+            <div className="flex gap-2">
+              <div>
+                <label>Postal Code</label>
+                <input
+                  type="text"
+                  placeholder="Postal Code"
+                  value={postalCode}
+                  onChange={(ev) => setPostalCode(ev.target.value)}
+                />
+              </div>
+              <div>
+                <label>City</label>
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={city}
+                  onChange={(ev) => setCity(ev.target.value)}
+                />
+              </div>
+            </div>
+            <label>Country</label>
+            <input
+              type="text"
+              placeholder="Country"
+              value={country}
+              onChange={(ev) => setCountry(ev.target.value)}
+            />
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
 }
