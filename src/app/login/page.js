@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     return (
         <section className="mt-8">
-            <h1 className="text-center text-primary text-4xl font-semibold mb-4">Login</h1>
+            <h1 className="mb-4 text-4xl font-semibold text-center text-primary">Login</h1>
             <form className="block max-w-xs mx-auto" onSubmit={handleFormSubmit}>
                 <input
                     name="email" 
@@ -47,23 +47,23 @@ export default function LoginPage() {
                 <div className="my-4 text-center text-gray-500">or Login with Providers</div>
 
                 <div className="space-y-4">
-                    <button type="button" className="flex gap-4 justify-center" onClick={() => signIn('google', {callbackUrl: '/'})}>
+                    <button type="button" className="flex justify-center gap-4" onClick={() => signIn('google', {callbackUrl: '/'})}>
                         <Image src={'/google.png'} alt="" width={24} height={24} />
                         Login with Google
                     </button>
-                    <button className="flex gap-4 justify-center">
+                    <button className="flex justify-center gap-4">
                         <Image src={'/facebook.png'} alt="" width={28} height={28} />
                         Login with Facebook
                     </button>
-                    <button className="flex gap-4 justify-center">
+                    <button className="flex justify-center gap-4">
                         <Image src={'/apple.png'} alt="" width={30} height={30} />
                         Login with Apple
                     </button>
                 </div>
 
-                <div className="text-center my-4 text-gray-500 border-t pt-4">
+                <div className="pt-4 my-4 text-center text-gray-500 border-t">
                     Don't have an account?{' '}
-                    <Link className="underline text-blue-800" href={'/login'}>Register here</Link>
+                    <Link className="text-blue-800 underline" href={'/register'}>Register here</Link>
                 </div>
             </form>
         </section>
