@@ -1,14 +1,20 @@
-import EditableImage from "@/components/layout/EditableImage";
+"use client";
 
-export default function UserForm(user) {
-    const [userName, setUserName] = useState(user?.userName || '');
-  const [image, setImage] = useState(user?.image || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [streetAddress, setStreetAddress] = useState(user?.streetAddress || '');
-  const [postalCode, setPostalCode] = useState(user?.postalCode || '');
-  const [city, setCity] = useState(user?.city || '');
-  const [country, setCountry] = useState(user?.country || '');
-  
+import EditableImage from "@/components/layout/EditableImage";
+import { useState } from "react";
+import { useProfile } from "../UseProfile";
+
+export default function UserForm(user, onSave) {
+  const [userName, setUserName] = useState(user?.name || "");
+  const [image, setImage] = useState(user?.image || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [streetAddress, setStreetAddress] = useState(user?.streetAddress || "");
+  const [postalCode, setPostalCode] = useState(user?.postalCode || "");
+  const [city, setCity] = useState(user?.city || "");
+  const [country, setCountry] = useState(user?.country || "");
+  const [admin, setAdmin] = useState(user?.admin || false);
+  const { data: loggedInUserData } = useProfile();
+
   return (
     <div className="flex gap-4">
       <div>
@@ -16,7 +22,21 @@ export default function UserForm(user) {
           <EditableImage link={image} setLink={setImage} />
         </div>
       </div>
-      <form className="grow" onSubmit={handleProfileInfoUpdate}>
+      <form
+        className="grow"
+        onSubmit={(ev) =>
+          onSave(ev, {
+            name: userName,
+            image,
+            phone,
+            streetAddress,
+            city,
+            country,
+            postalCode,
+            admin,
+          })
+        }
+      >
         <label>First & Last Name</label>
         <input
           type="text"
@@ -25,7 +45,7 @@ export default function UserForm(user) {
           onChange={(ev) => setUserName(ev.target.value)}
         />
         <label>Email</label>
-        <input type="email" value={"session.data.user.email"} disabled={true} />
+        <input type="email" value={user.email} disabled={true} />
         <label>Phone</label>
         <input
           type="tel"
@@ -40,7 +60,7 @@ export default function UserForm(user) {
           value={streetAddress}
           onChange={(ev) => setStreetAddress(ev.target.value)}
         />
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label>Postal Code</label>
             <input
@@ -67,6 +87,24 @@ export default function UserForm(user) {
           value={country}
           onChange={(ev) => setCountry(ev.target.value)}
         />
+        {loggedInUserData.admin && (
+          <div>
+            <label
+              className="inline-flex items-center gap-2 p-2 mb-2"
+              htmlFor="adminCb"
+            >
+              <input
+                id="adminCb"
+                type="checkbox"
+                className=""
+                value={"1"}
+                checked={admin}
+                onClick={(ev) => setAdmin(ev.target.checked)}
+              />
+              <span>Admin</span>
+            </label>
+          </div>
+        )}
         <button type="submit">Save</button>
       </form>
     </div>
