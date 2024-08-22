@@ -1,5 +1,6 @@
 "use client";
 
+import UserForm from "@/components/layout/UserForm";
 import UserTabs from "@/components/layout/UserTabs";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
@@ -9,21 +10,16 @@ import toast from "react-hot-toast";
 export default function ProfilePage() {
   const session = useSession();
   
+  const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profileFetched, setProfileFetched] = useState(false);
   const { status } = session;
 
   useEffect(() => {
     if (status === "authenticated") {
-      setUserName(session.data.user.name);
-      setImage(session.data.user.image);
       fetch("/api/profile").then((response) => {
         response.json().then((data) => {
-          setPhone(data.phone);
-          setStreetAddress(data.streetAddress);
-          setPostalCode(data.postalCode);
-          setCity(data.city);
-          setCountry(data.country);
+          setUser(data);
           setIsAdmin(data.admin);
           setProfileFetched(true);
         });
@@ -31,22 +27,14 @@ export default function ProfilePage() {
     }
   }, [session, status]);
 
-  async function handleProfileInfoUpdate(ev) {
+  async function handleProfileInfoUpdate(ev, data) {
     ev.preventDefault();
 
     const savingPromise = new Promise(async (resolve, reject) => {
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: userName,
-          image,
-          streetAddress,
-          phone,
-          postalCode,
-          city,
-          country,
-        }),
+        body: JSON.stringify({data}),
       });
       if (response.ok) resolve();
       else reject();
@@ -71,7 +59,7 @@ export default function ProfilePage() {
     <section className="mt-8">
       <UserTabs isAdmin={isAdmin} />
       <div className="max-w-2xl mx-auto mt-8">
-        
+        <UserForm user={user} onSave={handleProfileInfoUpdate} />
       </div>
     </section>
   );
